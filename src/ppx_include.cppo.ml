@@ -1,12 +1,10 @@
-#if OCAML_VERSION < (4, 03, 0)
-#define Pconst_string Const_string
-#endif
+(* #if OCAML_VERSION < (4, 03, 0) *)
+(* #define Pconst_string Const_string *)
+(* #endif *)
 
-open Longident
 open Asttypes
 open Parsetree
 open Ast_mapper
-open Ast_helper
 
 let raise_errorf ?sub ?if_highlight ?loc message =
   message |> Printf.kprintf (fun str ->
@@ -15,8 +13,12 @@ let raise_errorf ?sub ?if_highlight ?loc message =
 
 let filename_of_payload ~loc payload =
   match payload with
-  | PStr [{ pstr_desc = Pstr_eval (
-      { pexp_desc = Pexp_constant (Pconst_string (file, None)) }, _) }] ->
+  | PStr [{
+    pstr_desc = Pstr_eval (
+      { pexp_desc = Pexp_constant (Pconst_string (file, None)); _ },
+      _);
+      _
+    }] ->
     file
   | _ ->
     raise_errorf ~loc "[%%include]: invalid syntax"
@@ -37,7 +39,7 @@ let lexbuf_of_payload ~loc payload =
 
 let rec structure mapper items =
   match items with
-  | { pstr_desc = Pstr_extension (({ txt = "include"; loc }, payload), _) } :: items ->
+  | { pstr_desc = Pstr_extension (({ txt = "include"; loc }, payload), _); _ } :: _ ->
     mapper.structure mapper (Parse.implementation (lexbuf_of_payload ~loc payload))
   | item :: items ->
     mapper.structure_item mapper item :: structure mapper items
@@ -45,12 +47,12 @@ let rec structure mapper items =
 
 let rec signature mapper items =
   match items with
-  | { psig_desc = Psig_extension (({ txt = "include"; loc }, payload), _) } :: items ->
+  | { psig_desc = Psig_extension (({ txt = "include"; loc }, payload), _); _ } :: _ ->
     mapper.signature mapper (Parse.interface (lexbuf_of_payload ~loc payload))
   | item :: items ->
     mapper.signature_item mapper item :: signature mapper items
   | [] -> []
 
 let () =
-  Ast_mapper.register "ppx_include" (fun argv ->
+  Ast_mapper.register "ppx_include" (fun _ ->
     { default_mapper with structure; signature; })

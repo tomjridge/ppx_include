@@ -1,0 +1,21 @@
+description: "Include OCaml source files in each other"
+synopsis: "Include OCaml source files in each other"
+name: "ppx_include"
+opam-version: "2.0"
+maintainer: "whitequark <whitequark@whitequark.org>"
+authors: [ "whitequark <whitequark@whitequark.org>" ]
+homepage: "https://github.com/ocaml-ppx/ppx_include"
+doc: "https://ocaml-ppx.github.io/ppx_include/"
+license: "MIT"
+bug-reports: "https://github.com/ocaml-ppx/ppx_include/issues"
+dev-repo: "git+https://github.com/ocaml-ppx/ppx_include.git"
+tags: [ "syntax" ]
+
+depends: [
+  "ocaml"                   {              >= "4.04.2" & < "4.08.0" }
+  "dune"                    { build &      >= "1.2.0"  }
+  "cppo"                    { build &      >= "1.6.0"  }
+]
+
+build:      [["dune" "build"   "-p" name "-j" jobs]
+            ]
