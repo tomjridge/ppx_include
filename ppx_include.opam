@@ -2,6 +2,7 @@ description: "Include OCaml source files in each other"
 synopsis: "Include OCaml source files in each other"
 name: "ppx_include"
 opam-version: "2.0"
+version: "1.2"
 maintainer: "whitequark <whitequark@whitequark.org>"
 authors: [ "whitequark <whitequark@whitequark.org>" ]
 homepage: "https://github.com/ocaml-ppx/ppx_include"
