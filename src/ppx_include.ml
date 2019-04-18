@@ -1,18 +1,15 @@
 open Ast_403
-(* open Ppx_tools_403 *)
 
-(* open Longident *)
 open Asttypes
 open Parsetree
 open Ast_mapper
-(* open Ast_helper *)
-(* open Types *)
 
 let ocaml_version = Migrate_parsetree.Versions.ocaml_403
 let from_current = Migrate_parsetree.(Versions.migrate Versions.ocaml_current ocaml_version)
 
 let raise_errorf ?sub ?if_highlight ?loc message =
-  message |> Printf.kprintf (fun str ->
+  message
+  |> Printf.kprintf (fun str ->
       let err = Location.error ?sub ?if_highlight ?loc str in
       raise (Location.Error err))
 

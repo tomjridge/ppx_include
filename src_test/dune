@@ -1,0 +1,11 @@
+(test
+  (name test_ppx_include)
+  (preprocessor_deps
+    (file a.mli)
+    (file a.ml)
+    (file b.mli)
+    (file b.ml)
+  )
+  (modules Test_ppx_include)
+  (preprocess (staged_pps ppx_include))
+  (libraries compiler-libs.common))
