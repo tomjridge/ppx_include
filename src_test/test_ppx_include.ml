@@ -1,2 +1,6 @@
-module rec A : sig [%%include "a.mli"] end = struct [%%include "a.ml"] end
-and B : sig [%%include "b.mli"] end = struct [%%include "b.ml"] end
+
+let () =
+  let open Ppx_types in
+  let loc = ("main.ml", (4, 4), (0, 0)) in
+  print_endline (show_loc loc);
+

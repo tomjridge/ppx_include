@@ -1,11 +1,11 @@
 (test
   (name test_ppx_include)
   (preprocessor_deps
-    (file a.mli)
-    (file a.ml)
-    (file b.mli)
-    (file b.ml)
+    (file ppx_types.inc)
   )
-  (modules Test_ppx_include)
-  (preprocess (staged_pps ppx_include))
-  (libraries compiler-libs.common))
+  (modules
+    Test_ppx_include
+    Ppx_types
+  )
+  (preprocess (staged_pps ppx_include ppx_deriving.std))
+  (libraries compiler-libs.common ppx_deriving.std))

@@ -20,11 +20,10 @@ let filename_of_payload ~loc payload =
   | _ ->
     raise_errorf ~loc "[%%include]: invalid syntax"
 
-let lexbuf_of_payload ~loc payload =
+let lexbuf_of_payload ~load_path ~loc payload =
   let filename = filename_of_payload ~loc payload in
   let load_paths =
-    (* (Filename.dirname loc.Location.loc_start.Lexing.pos_fname :: !Config.load_path) |> *)
-    (Filename.dirname loc.Location.loc_start.Lexing.pos_fname :: []) |>
+    (Filename.dirname loc.Location.loc_start.Lexing.pos_fname :: load_path) |>
     List.map (fun dir -> Filename.concat dir filename)
   in
   try
@@ -35,29 +34,32 @@ let lexbuf_of_payload ~loc payload =
   with Not_found ->
     raise_errorf ~loc "[%%include]: cannot locate file %S" filename
 
-let rec structure mapper items =
+let rec structure ~load_path mapper items =
   match items with
   | { pstr_desc = Pstr_extension (({ txt = "include"; loc }, payload), _); _ } :: _ ->
-    let old_struct = (Parse.implementation (lexbuf_of_payload ~loc payload)) in
+    let old_struct = (Parse.implementation (lexbuf_of_payload ~load_path ~loc payload)) in
     let cur_struct = from_current.copy_structure old_struct in
     mapper.structure mapper cur_struct
   | item :: items ->
-    mapper.structure_item mapper item :: structure mapper items
+    mapper.structure_item mapper item :: structure ~load_path mapper items
   | [] -> []
 
-let rec signature mapper items =
+let rec signature ~load_path mapper items =
   match items with
   | { psig_desc = Psig_extension (({ txt = "include"; loc }, payload), _); _ } :: _ ->
-    let old_interface = (Parse.interface (lexbuf_of_payload ~loc payload)) in
+    let old_interface = (Parse.interface (lexbuf_of_payload ~load_path ~loc payload)) in
     let cur_interface = from_current.copy_signature old_interface in
     mapper.signature mapper cur_interface
   | item :: items ->
-    mapper.signature_item mapper item :: signature mapper items
+    mapper.signature_item mapper item :: signature mapper ~load_path items
   | [] -> []
-
-let mapper _config _cookies =
-  { default_mapper with structure; signature; }
 
 let () =
   let open Migrate_parsetree in
-  Driver.register ~name:"ppx_include" ~args:[] ~position:(-20) ocaml_version mapper
+  Driver.register ~name:"ppx_include" ~args:[] ~position:(-20) ocaml_version
+    (fun config _cookies ->
+       let load_path = config.load_path in
+       let structure = structure ~load_path in
+       let signature = signature ~load_path in
+       { default_mapper with structure; signature; }
+    )
