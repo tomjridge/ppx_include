@@ -1,9 +1,8 @@
 (library
-  (public_name ppx_include)
-  (kind ppx_rewriter)
-  (libraries ocaml-migrate-parsetree))
-
-(rule
- (targets ppx_include.ml)
- (deps    (:first-dep ppx_include.cppo.ml))
- (action  (run %{bin:cppo} %{first-dep} -o %{targets})))
+ (public_name ppx_include)
+ (kind ppx_rewriter)
+ (preprocess (pps ppx_tools_versioned.metaquot_406))
+ (libraries
+  ocaml-migrate-parsetree
+  ppx_tools_versioned
+  ppx_tools_versioned.metaquot_406))
