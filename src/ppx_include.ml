@@ -27,10 +27,16 @@ let lexbuf_of_payload ~load_path ~loc payload =
     List.map (fun dir -> Filename.concat dir filename)
   in
   try
-    load_paths |>
-    List.find (fun intf -> Sys.file_exists intf) |>
-    open_in |>
-    Lexing.from_channel
+    let open Lexing in
+    let lexbuf = load_paths |>
+                 List.find (fun intf -> Sys.file_exists intf) |>
+                 open_in |>
+                 Lexing.from_channel in
+    let start_p = { lexbuf.lex_start_p with pos_fname = filename } in
+    let curr_p = { lexbuf.lex_curr_p with pos_fname = filename } in
+    lexbuf.lex_start_p <- start_p;
+    lexbuf.lex_curr_p <- curr_p;
+    lexbuf
   with Not_found ->
     raise_errorf ~loc "[%%include]: cannot locate file %S" filename
 
