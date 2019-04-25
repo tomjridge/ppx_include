@@ -42,30 +42,36 @@ let lexbuf_of_payload ~load_path ~loc payload =
 
 let rec structure ~load_path mapper items =
   match items with
-  | { pstr_desc = Pstr_extension (({ txt = "include"; loc }, payload), _); _ } :: _ ->
+  | { pstr_desc = Pstr_extension (({ txt = "include"; loc }, payload), _); _ } :: items ->
     let old_struct = (Parse.implementation (lexbuf_of_payload ~load_path ~loc payload)) in
     let cur_struct = from_current.copy_structure old_struct in
-    mapper.structure mapper cur_struct
+    let item = mapper.structure mapper cur_struct in
+    structure ~load_path mapper item @ structure ~load_path mapper items
   | item :: items ->
     mapper.structure_item mapper item :: structure ~load_path mapper items
   | [] -> []
 
 let rec signature ~load_path mapper items =
   match items with
-  | { psig_desc = Psig_extension (({ txt = "include"; loc }, payload), _); _ } :: _ ->
+  | { psig_desc = Psig_extension (({ txt = "include"; loc }, payload), _); _ } :: items ->
     let old_interface = (Parse.interface (lexbuf_of_payload ~load_path ~loc payload)) in
     let cur_interface = from_current.copy_signature old_interface in
-    mapper.signature mapper cur_interface
+    let item = mapper.signature mapper cur_interface in
+    signature ~load_path mapper item @ signature ~load_path mapper items
   | item :: items ->
     mapper.signature_item mapper item :: signature mapper ~load_path items
   | [] -> []
 
+let mapper ~load_path _config _cookies =
+  let structure = structure ~load_path in
+  let signature = signature ~load_path in
+  { default_mapper with structure; signature; }
+
 let () =
   let open Migrate_parsetree in
-  Driver.register ~name:"ppx_include" ~args:[] ~position:(-20) ocaml_version
-    (fun config _cookies ->
-       let load_path = config.load_path in
-       let structure = structure ~load_path in
-       let signature = signature ~load_path in
-       { default_mapper with structure; signature; }
-    )
+  Driver.register
+    ~name:"ppx_include"
+    ~args:[]
+    ~position:(-10000)
+    ocaml_version
+    (fun config cookies -> mapper ~load_path:config.load_path config cookies)
