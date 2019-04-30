@@ -19,5 +19,6 @@ build-test: [
 depends: [
   "ocamlfind" {build}
   "cppo"      {build}
+  "ppx_tools_versioned" {build}
 ]
 available: [ ocaml-version >= "4.02.0" ]
